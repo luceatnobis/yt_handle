@@ -7,8 +7,6 @@ import sys
 import shutil
 import httplib2
 
-import pdb
-
 import oauth2client
 import googleapiclient
 from oauth2client.file import Storage, Credentials
