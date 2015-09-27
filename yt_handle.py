@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import os
 import sys
-import json
 import shutil
 import httplib2
 
@@ -13,7 +12,7 @@ import pdb
 import oauth2client
 import googleapiclient
 from oauth2client.file import Storage, Credentials
-from oauth2client.client import flow_from_clientsecrets, OAuth2Credentials
+from oauth2client.client import flow_from_clientsecrets
 
 try:
     raw_input
@@ -44,6 +43,7 @@ def return_handle(args):
 
     return googleapiclient.discovery.build(
         "youtube", "v3", http=handle)
+
 
 def create_identity(args):
     n = raw_input("Please specify the location of the client_secrets file: ")
@@ -102,16 +102,8 @@ def _retrieve_files(folder):
     cs_f = os.path.join(folder, CS)
     creds_f = os.path.join(folder, CREDS)
 
-    """
-    secrets = Storage(cs_f)
-    credentials = Storage(creds_f)
-    """
     with open(cs_f) as sec, open(creds_f) as cred:
         secrets = sec.read()
         credentials = cred.read()
-        """
-        secrets = json.load(sec)
-        credentials = json.load(cred)
-        """
 
     return dict(secrets=secrets, credentials=credentials)
