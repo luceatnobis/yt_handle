@@ -8,14 +8,13 @@ import shutil
 import httplib2
 
 import oauth2client
-import googleapiclient
+try:
+    import apiclient as googleapiclient
+except ImportError:
+    import googleapiclient
+
 from oauth2client.file import Storage, Credentials
 from oauth2client.client import flow_from_clientsecrets
-
-try:
-    raw_input
-except NameError:
-    raw_input = input
 
 
 CS = "client_secrets.json"
@@ -25,14 +24,14 @@ YOUTUBE_READ_WRITE_SSL_SCOPE = (
     "https://www.googleapis.com/auth/youtube.force-ssl")
 
 
-def return_handle(args):
+def return_handle(id_name):
     identity_root = os.path.expanduser(YOUTUBE_DATA_ROOT)
-    identity_folder = os.path.join(identity_root, args.id)
+    identity_folder = os.path.join(identity_root, id_name)
 
     if not os.path.exists(identity_folder):
-        n = raw_input("Identity %s is not known; create it? [Y|n] " % args.id)
+        n = input("Identity %s is not known; create it? [Y|n] " % id_name)
         if not n or n.lower().startswith('y'):
-            create_identity(args)
+            create_identity(id_name)
         else:
             sys.exit()
     identity = _retrieve_files(identity_folder)
@@ -43,17 +42,22 @@ def return_handle(args):
         "youtube", "v3", http=handle)
 
 
-def create_identity(args):
-    n = raw_input("Please specify the location of the client_secrets file: ")
-    cs_location = os.path.abspath(os.path.expanduser(n))
+def create_identity(id_name, cs_location=None):
+    if cs_location is None:
+        n = input("Please specify the location of the client_secrets file: ")
+        cs_location = os.path.abspath(os.path.expanduser(n))
+
     if os.path.isdir(cs_location):
         cs_location = os.path.join(cs_location, CS)
 
     identity_root = os.path.expanduser(YOUTUBE_DATA_ROOT)
-    identity_folder = os.path.join(identity_root, args.id)
+    identity_folder = os.path.join(identity_root, id_name)
 
-    id_cs_location = os.path.join(identity_root, args.id, CS)
-    id_cred_location = os.path.join(identity_root, args.id, CREDS)
+    if os.path.exists(identity_folder):
+        return
+
+    id_cs_location = os.path.join(identity_root, id_name, CS)
+    id_cred_location = os.path.join(identity_root, id_name, CREDS)
 
     storage = Storage(id_cred_location)
     credentials = storage.get()
@@ -70,7 +74,6 @@ def create_identity(args):
 
     if code:
         credential = flow.step2_exchange(code, http=None)
-        pdb.set_trace()
         os.makedirs(identity_folder)
         storage.put(credential)
         credential.set_store(storage)
